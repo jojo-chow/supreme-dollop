@@ -1,106 +1,93 @@
 package main
 
 import (
-    "fmt"
-    "log"
-    "os"
-    "strings"
-
-    "github.com/gofiber/fiber/v2"
-    "github.com/gofiber/fiber/v2/middleware/cors"
-    "github.com/google/uuid"
+	"html/template"
+	"log"
+	"net/http"
+	"os"
+	"regexp"
 )
 
+type Page struct {
+	Title string
+	Body  []byte
+}
+
+func (p *Page) save() error {
+	filename := p.Title + ".txt"
+	return os.WriteFile(filename, p.Body, 0600)
+}
+
+
+func loadPage(title string) (*Page, error) {
+	filename := title + ".txt"
+	body, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return &Page{Title: title, Body: body}, nil
+}
+
+
+func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
+	p, err := loadPage(title)
+	if err != nil {
+		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
+		return
+	}
+	renderTemplate(w, "view", p)
+}
+
+
+func editHandler(w http.ResponseWriter, r *http.Request, title string) {
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+	renderTemplate(w, "edit", p)
+}
+
+
+func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
+	body := r.FormValue("body")
+	p := &Page{Title: title, Body: []byte(body)}
+	err := p.save()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/view/"+title, http.StatusFound)
+}
+
+var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+
+
+func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+
+func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		m := validPath.FindStringSubmatch(r.URL.Path)
+		if m == nil {
+			http.NotFound(w, r)
+			return
+		}
+		fn(w, r, m[2])
+	}
+}
+
+
 func main() {
-    // create new fiber instance  and use across whole app
-    app := fiber.New()
+	http.HandleFunc("/view/", makeHandler(viewHandler))
+	http.HandleFunc("/edit/", makeHandler(editHandler))
+	http.HandleFunc("/save/", makeHandler(saveHandler))
 
-    // middleware to allow all clients to communicate using http and allow cors
-    app.Use(cors.New())
-
-    // serve  images from images directory prefixed with /images
-    // i.e http://localhost:4000/images/someimage.webp
-
-    app.Static("/images", "./images")
-
-    // handle image uploading using post request
-
-    app.Post("/", handleFileupload)
-
-    // delete uploaded image by providing unique image name
-
-    app.Delete("/:imageName", handleDeleteImage)
-
-    // start dev server on port 4000
-
-    log.Fatal(app.Listen(":4000"))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
-
-
-
-func handleFileupload(c *fiber.Ctx) error {
-
-    // parse incomming image file
-
-    file, err := c.FormFile("image")
-
-    if err != nil {
-        log.Println("image upload error --> ", err)
-        return c.JSON(fiber.Map{"status": 500, "message": "Server error", "data": nil})
-
-    }
-
-    // generate new uuid for image name 
-    uniqueId := uuid.New()
-
-    // remove "- from imageName"
-
-    filename := strings.Replace(uniqueId.String(), "-", "", -1)
-
-    // extract image extension from original file filename
-
-    fileExt := strings.Split(file.Filename, ".")[1]
-
-    // generate image from filename and extension
-    image := fmt.Sprintf("%s.%s", filename, fileExt)
-
-    // save image to ./images dir 
-    err = c.SaveFile(file, fmt.Sprintf("./images/%s", image))
-
-    if err != nil {
-        log.Println("image save error --> ", err)
-        return c.JSON(fiber.Map{"status": 500, "message": "Server error", "data": nil})
-    }
-
-    // generate image url to serve to client using CDN
-
-    imageUrl := fmt.Sprintf("http://localhost:4000/images/%s", image)
-
-    // create meta data and send to client
-
-    data := map[string]interface{}{
-
-        "imageName": image,
-        "imageUrl":  imageUrl,
-        "header":    file.Header,
-        "size":      file.Size,
-    }
-
-    return c.JSON(fiber.Map{"status": 201, "message": "Image uploaded successfully", "data": data})
-}
-
-
-func handleDeleteImage(c *fiber.Ctx) error {
-    // extract image name from params
-    imageName := c.Params("imageName")
-
-    // delete image from ./images
-    err := os.Remove(fmt.Sprintf("./images/%s", imageName))
-    if err != nil {
-        log.Println(err)
-        return c.JSON(fiber.Map{"status": 500, "message": "Server Error", "data": nil})
-    }
-
-    return c.JSON(fiber.Map{"status": 201, "message": "Image deleted successfully", "data": nil})
-}
-

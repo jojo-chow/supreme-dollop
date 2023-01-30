@@ -1,2 +1,4 @@
 *.sum
 *.js
+go-server/main
+*.txt
