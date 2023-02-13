@@ -13,8 +13,8 @@ jobs
 kill %1
 
 == TYPESCRIPT FRONT END ==
-To build and run typescript
-cd typescript
-npx tsc app.ts
-
-Then open "index.html" in live view
+Built using Node v16.9.1
+To install dependencies: npm install 
+To build and run development: npm run dev
+To build for production: npm run build
+To preview: npm run preview
