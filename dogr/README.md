@@ -43,5 +43,12 @@ $ npm run dev
 ### Run Test
 TBD
 
+### Run Build
+Run the following to build the frontend source code
+```sh
+$ cd dogr
+$ npm run build
+```
+
 ### Pull Request
 Before uploading your PR, run test one last time to check if there are any errors. If it has no errors, commit and then push it!
