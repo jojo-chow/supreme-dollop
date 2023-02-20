@@ -1,0 +1,11 @@
+<h1>{{.Title}}</h1>
+
+{{range $i := .List}}
+<p>
+    <a href="/view/{{$i}}">[{{$i}}]</a>
+</p>
+{{end}}
+
+<form action="/add/" method="POST">
+    Page name: <textarea name="pagename" rows="1" cols="20"></textarea> <input type="submit" value="Add">
+</form>

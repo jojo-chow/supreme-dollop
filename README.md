@@ -10,9 +10,9 @@ cd go-server
 go build main.go
 ./main
 
-// TODO: Terminate Go Server Gracefully
+Control + C to kill server. 
 
-To stop go server
+If you accidentally used Control + Z, use
 jobs
 kill %1
 
