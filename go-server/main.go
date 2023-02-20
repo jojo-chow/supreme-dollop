@@ -11,16 +11,17 @@ import (
 type Page struct {
 	Title string
 	Body  []byte
+	List  []string
 }
 
 func (p *Page) save() error {
-	filename := p.Title + ".txt"
+	filename := "savedData/" + p.Title + ".txt"
 	return os.WriteFile(filename, p.Body, 0600)
 }
 
 
 func loadPage(title string) (*Page, error) {
-	filename := title + ".txt"
+	filename := "savedData/" + title + ".txt"
 	body, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -60,11 +61,34 @@ func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
-var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+func addHandler(w http.ResponseWriter, r *http.Request) {
+	pageName := r.FormValue("pagename")
+	http.Redirect(w, r, "/edit/"+pageName, http.StatusFound)
+}
 
+var templates = template.Must(template.ParseFiles("index.html", "edit.html", "view.html"))
+
+func getRoot(w http.ResponseWriter, r *http.Request) {
+    entries, err := os.ReadDir("./savedData/")
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+	var list []string
+
+    for _, e := range entries {
+		entryFileName := e.Name()
+		entryName := entryFileName[:len(entryFileName)-4]
+		list = append(list, entryName)
+    }
+
+	p := &Page{Title: "home", List: list}
+
+	renderTemplate(w, "index", p)
+}
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+	err := templates.ExecuteTemplate(w, tmpl + ".html", p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -76,18 +100,19 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 	return func(w http.ResponseWriter, r *http.Request) {
 		m := validPath.FindStringSubmatch(r.URL.Path)
 		if m == nil {
-			http.NotFound(w, r)
+		    http.NotFound(w, r)
 			return
 		}
 		fn(w, r, m[2])
 	}
 }
 
-
 func main() {
 	http.HandleFunc("/view/", makeHandler(viewHandler))
 	http.HandleFunc("/edit/", makeHandler(editHandler))
 	http.HandleFunc("/save/", makeHandler(saveHandler))
+	http.HandleFunc("/add/", addHandler)
+	http.HandleFunc("/", getRoot)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
