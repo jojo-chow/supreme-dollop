@@ -4,7 +4,7 @@
 To build and run go server
 cd go-server
 go build main.go
-./ main
+./main
 
 // TODO: Terminate Go Server Gracefully
 
