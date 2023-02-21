@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"fmt"
 	"os"
-	"io/ioutil"
+	"io"
 	"regexp"
 	"github.com/google/uuid"
 )
@@ -97,7 +97,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
     // Create a temporary file within our temp-images directory that follows
     // a particular naming pattern
-    tempFile, err := ioutil.TempFile("savedImages", "upload-*.png")
+    tempFile, err := os.CreateTemp("savedImages", "upload-*.png")
     if err != nil {
         fmt.Println(err)
     }
@@ -105,7 +105,7 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
     // read all of the contents of our uploaded file into a
     // byte array
-    fileBytes, err := ioutil.ReadAll(file)
+    fileBytes, err := io.ReadAll(file)
     if err != nil {
         fmt.Println(err)
     }
