@@ -1,5 +1,6 @@
 *.sum
 *.js
 *.txt
+go-api/main
 go-server/main
 go-server/savedImages/*.png
