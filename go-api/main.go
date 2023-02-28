@@ -9,7 +9,7 @@ import (
     "net/http"
     "os"
 	"html/template"
-	"bufio"
+	"encoding/json"
 	"io"
 	"github.com/google/uuid"
 )
@@ -59,17 +59,31 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 
     path := tempFile.Name()
 
-	// TODO: Call add handler and write to JSON file
-    // add file path to txt
-	f, err := os.OpenFile("filepath.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// Add to db
+	// TODO: add to real database if we are rewriting backend to include a database
+	image := models.Image{ImageID: id, OriginalFileName: originalFileName, FilePath: path, Status: "unprocessed"}
+	db.Imagedb[id] = image
+
+	// write image data to JSON file
+	jsonbytes, _ := json.MarshalIndent(image, "", " ")
+
+	f, err := os.OpenFile("allimages.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
+		return
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("id = " + id + "; Original File Name = " + originalFileName + "; File Path = " + path + "\r\n"); err != nil {
-		log.Println(err)
+	n, err := f.Write(jsonbytes)
+	if err != nil {
+		fmt.Println(n, err)
 	}
+
+	if n, err = f.WriteString("\n"); err != nil {
+		fmt.Println(n, err)
+	}
+
+	// TODO: Call add handler
 
 	http.Redirect(w, r, "/", http.StatusFound)
 }
@@ -77,34 +91,42 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 var templates = template.Must(template.ParseFiles("index.html"))
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
-	// TODO: Remove once read from JSON is added
-	var imagelist []string
-	readfilepath, err := os.Open("filepath.txt")
-	if err == nil {
-		fileScanner := bufio.NewScanner(readfilepath)
- 
-		fileScanner.Split(bufio.ScanLines)
-	  
-		for fileScanner.Scan() {
-			imagelist = append(imagelist, fileScanner.Text())
-		}
-	} 
-
-	readfilepath.Close()
-
-	err = templates.ExecuteTemplate(w, "index.html", nil)
+	err := templates.ExecuteTemplate(w, "index.html", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func main() {
-	log.Print("The is Server Running on localhost port 3000")
+	// read json and add to db
+	// Open our jsonFile
+	jsonFile, err := os.Open("allimages.json")
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	// hardcoded test data
-	// TODO: Replace hardcoded data with reading JSON file
-	db.Imagedb["001"] = models.Image{ImageID: "001", OriginalFileName: "J_Chow_220914_6835_1200.jpg", FilePath: "savedImages/upload-3983864146.png", Status: "unprocessed"}
-    db.Imagedb["002"] = models.Image{ImageID: "002", OriginalFileName: "J_Chow_220914_6846_1200.jpg", FilePath: "savedImages/upload-2154451405.png", Status: "unprocessed"}
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+
+	// read our opened jsonFile as a byte array.
+	byteValue, _ := io.ReadAll(jsonFile)
+
+	// we initialize our Users array
+	var savedImages []models.Image
+
+	// we unmarshal our byteArray which contains our
+	// jsonFile's content into 'users' which we defined above
+
+	//TODO : fix JSON reading code or use a real database
+	json.Unmarshal(byteValue, &savedImages)
+	fmt.Print(savedImages)
+
+	for _, savedImage := range savedImages {
+		db.Imagedb[savedImage.ImageID] = savedImage
+	}
+
+	log.Print("The is Server Running on localhost port 3000")
 
     // route goes here
 
@@ -126,7 +148,7 @@ func main() {
 	http.HandleFunc("/image/delete", handler.DeleteImage)
 
 	// listen port
-	err := http.ListenAndServe(":3000", nil)
+	err = http.ListenAndServe(":3000", nil)
 	// print any server-based error messages
 	if err != nil {
 	    fmt.Println(err)
