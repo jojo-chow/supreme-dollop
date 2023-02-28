@@ -1,7 +1,7 @@
 # supreme-dollop
 
-Tasks: https://trello.com/b/qFKy7gUY/dogr
-Design Docs: https://drive.google.com/drive/folders/1IHg6UDWjfwaa4AXUuFvRc06TREEDsVu-
+* Tasks: https://trello.com/b/qFKy7gUY/dogr
+* Design Docs: https://drive.google.com/drive/folders/1IHg6UDWjfwaa4AXUuFvRc06TREEDsVu-
 
 ## Installation instructions
 TBD
