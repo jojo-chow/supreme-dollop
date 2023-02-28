@@ -2,7 +2,7 @@ package models
 
 // Image for modeling data
 type Image struct {
-	ID string `json:"id"`
+	ImageID string `json:"imageid"`
 	UserID string `json:"userid"`
 	OriginalFileName string `json:"originalfilename"`
 	FilePath string `json:"filepath"`

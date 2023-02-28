@@ -9,7 +9,6 @@ import (
 )
 
 func TestHandler(res http.ResponseWriter, req *http.Request) {
-
 	// Add the response return message
 	HandlerMessage := []byte(`{
 	 "success": true,
@@ -22,7 +21,6 @@ func TestHandler(res http.ResponseWriter, req *http.Request) {
 
 // Get Images handler
 func GetImages(res http.ResponseWriter, req *http.Request) {
-
 	if req.Method != "GET" {
    
 	 // Add the response return message
@@ -60,7 +58,6 @@ func GetImages(res http.ResponseWriter, req *http.Request) {
 
 // Get a single image handler
 func GetImage(res http.ResponseWriter, req *http.Request) {
-
 	if req.Method != "GET" {
 	 // Add the response return message
 	 HandlerMessage := []byte(`{
@@ -72,7 +69,7 @@ func GetImage(res http.ResponseWriter, req *http.Request) {
 	 return
 	}
    
-	if _, ok := req.URL.Query()["id"]; !ok {
+	if _, ok := req.URL.Query()["imageid"]; !ok {
 	 // Add the response return message
 	 HandlerMessage := []byte(`{
 	  "success": false,
@@ -83,7 +80,7 @@ func GetImage(res http.ResponseWriter, req *http.Request) {
 	 return
 	}
    
-	id := req.URL.Query()["id"][0]
+	id := req.URL.Query()["imageid"][0]
    
 	image, ok := db.Imagedb[id]
 	if !ok {
@@ -115,7 +112,6 @@ func GetImage(res http.ResponseWriter, req *http.Request) {
 
 // Add a image handler
 func AddImage(res http.ResponseWriter, req *http.Request) {
-
 	if req.Method != "POST" {
 	 // Add the response return message
 	 HandlerMessage := []byte(`{
@@ -145,7 +141,7 @@ func AddImage(res http.ResponseWriter, req *http.Request) {
 	 return
 	}
    
-	db.Imagedb[image.ID] = image
+	db.Imagedb[image.ImageID] = image
 	// Add the response return message
 	HandlerMessage := []byte(`{
 	 "success": true,
@@ -157,7 +153,6 @@ func AddImage(res http.ResponseWriter, req *http.Request) {
 
 // Delete a image handler
 func DeleteImage(res http.ResponseWriter, req *http.Request) {
-
 	if req.Method != "DELETE" {
 	 // Add the response return message
 	 HandlerMessage := []byte(`{
@@ -169,7 +164,7 @@ func DeleteImage(res http.ResponseWriter, req *http.Request) {
 	 return
 	}
    
-	if _, ok := req.URL.Query()["id"]; !ok {
+	if _, ok := req.URL.Query()["imageid"]; !ok {
 	 // Add the response return message
 	 HandlerMessage := []byte(`{
 	  "success": false,
@@ -180,8 +175,8 @@ func DeleteImage(res http.ResponseWriter, req *http.Request) {
 	 return
 	}
    
-	id := req.URL.Query()["id"][0]
-	image, ok := db.Imagedb[id]
+	imageid := req.URL.Query()["imageid"][0]
+	image, ok := db.Imagedb[imageid]
 	if !ok {
 	 // Add the response return message
 	 HandlerMessage := []byte(`{
