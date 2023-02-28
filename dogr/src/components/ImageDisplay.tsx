@@ -1,20 +1,17 @@
-import { useState } from 'react';
-import { render } from 'react-dom';
-
-interface ImageDisplayProps {
-  imageUrl: string | null;
+interface Props {
+  previewUrl: string | null;
 }
 
-const ImageDisplay: React.FC<ImageDisplayProps> = ({ imageUrl }) => {
-  
-  const render = () => {
-    if (imageUrl) {
-      return <img src={imageUrl} alt="Uploaded file" />;
-    }
-    return <div>No image uploaded.</div>
-  }
-
-  return render();
+const ImageDisplay = ({ previewUrl }: Props) => {
+  return (
+    <div className="flex items-center justify-center w-48 h-48 bg-gray-100">
+      {previewUrl ? (
+        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+      ) : (
+        <p>No Image Uploaded</p>
+      )}
+    </div>
+  );
 };
 
 export default ImageDisplay;

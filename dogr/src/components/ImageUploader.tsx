@@ -1,93 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import axios from "axios";
+import { useDropzone } from "react-dropzone";
+import { AiOutlineCloudUpload } from "react-icons/ai";
 
-interface ImageUploaderProps {
-  onUploadSuccess: (imageUrl: string) => void;
-  onUploadError: (error: string) => void;
+interface Props {
+  apiUrl: string;
+  handleImageUpload: (url: string) => void;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onUploadSuccess, onUploadError }) => {
+const ImageUploader: React.FC<Props> = ({ apiUrl, handleImageUpload }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [dragging, setDragging] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const file = event.target.files[0];
-      setSelectedFile(file);
-      const imageUrl = URL.createObjectURL(file);
-      setImageUrl(imageUrl);
-    }
-  };
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setDragging(false);
-    if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-      const file = event.dataTransfer.files[0];
-      setSelectedFile(file);
-      const imageUrl = URL.createObjectURL(file);
-      setImageUrl(imageUrl);
-    }
-  };
-
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setDragging(true);
-  };
-
-  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setDragging(false);
+  const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+    setSelectedFile(file);
   }
 
-  const handleUploadClick = () => {
-    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-    fileInput.click();
-  };
+  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    setSelectedFile(file);
+  }
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+
+      const response = await axios.post(apiUrl, formData);
+
+      if (response && response.data && response.data.url) {
+        handleImageUpload(response.data.url);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsUploading(false);
+    }
+  }
 
   return (
-    <div
-      className={`w-full max-w-xs ${
-        dragging ? 'border-dashed border-2 border-blue-500' : ''
-      }`}
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-    >
-      <label className="block text-gray-700 text-sm font-bold mb-2">
-        Upload an image
-      </label>
-      <div className="flex items-center justify-center bg-grey-lighter">
-        <label
-          className="w-full flex flex-col items-center px-4 py-6 bg-white text-blue rounded-lg tracking-wide uppercase border border-blue cursor-pointer hover:bg-blue hover:text-white"
-          htmlFor="fileInput"
+    <div className="relative">
+      <label htmlFor="image-upload-input">
+        <div
+          className="border-dashed border-2 border-gray-400 h-64 flex justify-center items-center cursor-pointer"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleFileDrop}
         >
-          {imageUrl ? (
-            <img src={imageUrl} alt="Selected file" />
+          {selectedFile ? (
+            <img
+              className="h-full w-full object-contain"
+              src={URL.createObjectURL(selectedFile)}
+              alt="Preview"
+            />
           ) : (
-            <span>Choose a file or drag it here</span>
+            <span>Drag and drop or click to upload</span>
           )}
-          <input
-            className="hidden"
-            id="fileInput"
-            name="fileInput"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-        </label>
-      </div>
+        </div>
+      </label>
+
+      <input
+        id="image-upload-input"
+        type="file"
+        className="hidden"
+        onChange={handleFileSelection}
+      />
+
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        onClick={handleUploadClick}
+        className="absolute bottom-0 right-0 bg-blue-500 text-white py-2 px-4 rounded-md m-4 disabled:opacity-50"
+        onClick={handleFileUpload}
+        disabled={!selectedFile || isUploading}
       >
-        Upload
+        {isUploading ? "Uploading..." : "Upload"}
       </button>
     </div>
   );
+
 };
 
 export default ImageUploader;
