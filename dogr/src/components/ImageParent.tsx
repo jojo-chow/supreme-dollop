@@ -1,25 +1,23 @@
-import { useState } from 'react';
-import ImageUploader from './ImageUploader';
-import ImageDisplay from './ImageDisplay';
+import React, { useState } from "react";
+import ImageUploader from "./ImageUploader";
+import ImageDisplay from "./ImageDisplay";
+
+import config from "../config.json";
 
 const ImageParent = () => {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const apiUrl = config.apiUrl;
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleUploadSuccess = (imageUrl: string) => {
-    setImageUrl(imageUrl);
-  };
-
-  const handleUploadError = (error: string) => {
-    // TODO: do something better than logging in the future
-    console.log(error);
-  };
+  const handleImageUpload = (url: string) => {
+    setPreviewUrl(url);
+  }
 
   return (
-    <div className="flex flex-row">
-      <ImageUploader onUploadSuccess={handleUploadSuccess} onUploadError={handleUploadError} />
-      <ImageDisplay imageUrl={imageUrl} />
+    <div className="flex flex-col items-center space-y-4">
+      <ImageDisplay previewUrl={null} />
+      <ImageUploader apiUrl={apiUrl} onImageUpload={handleImageUpload}/>
     </div>
-  )
+  );
 };
 
 export default ImageParent;
