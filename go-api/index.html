@@ -1,10 +1,4 @@
-<h1>{{.Title}}</h1>
-
-{{range $j := .ImageList}}
-<p>
-    [{{$j}}]
-</p>
-{{end}}
+<h1>HOME</h1>
 
 <form enctype="multipart/form-data" action="/upload/" method="POST">
     <input type="file" name="myFile" />
