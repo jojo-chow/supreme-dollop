@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ImageUploader from "./ImageUploader";
+import ImageUploaderInput from "./ImageUploaderInput";
 import ImagePreview from "./ImagePreview";
 
 import config from "../config.json";
@@ -27,8 +27,9 @@ const ImageParent = () => {
 
   return (
     <div className="flex flex-col items-center">
-      <ImageUploader onFileChange={handleFileChange} onUploadSuccess={handleUploadSuccess} onUploadError={handleUploadError} />
+      <ImageUploaderInput onFileChange={handleFileChange} onUploadSuccess={handleUploadSuccess} onUploadError={handleUploadError} />
       <ImagePreview imageUrl={imageUrl} />
+      <button className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full" type="button">Submit</button>
     </div>
   );
 };

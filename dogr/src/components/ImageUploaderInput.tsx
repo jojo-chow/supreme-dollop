@@ -11,8 +11,9 @@ interface ImageUploaderProps {
   onUploadError: (error: string) => void;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileChange, onUploadSuccess, onUploadError }) => {
+const ImageUploaderInput: React.FC<ImageUploaderProps> = ({ onFileChange, onUploadSuccess, onUploadError }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [dragging, setDragging] = useState<boolean>(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,13 +49,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileChange, onUploadSuc
 
   const updateSelectedFile = (file: File) => {
     setSelectedFile(file);
-    const imageUrl = URL.createObjectURL(file);
-    console.log(imageUrl);
+    setImageUrl(URL.createObjectURL(file));
     onFileChange(imageUrl);
   }
   
   return (
-    <div className="max-w-xl" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
+    <div className="max-w-xl mt-2" onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
       <label className="flex justify-center w-full h-32 px-4 transition 
                         bg-white border-2 border-gray-300 border-dashed 
                         rounded-md appearance-none cursor-pointer 
@@ -76,4 +76,4 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onFileChange, onUploadSuc
   )
 }
 
-export default ImageUploader;
+export default ImageUploaderInput;

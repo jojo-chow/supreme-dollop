@@ -9,9 +9,9 @@ const ImagePreview: React.FC<ImagePreviewProps> = ({ imageUrl }) => {
   
   const render = () => {
     if (imageUrl) {
-      return <img src={imageUrl} alt="Uploaded file" />;
+      return <img className="mt-2" src={imageUrl} alt="Uploaded file" />;
     }
-    return <div>No image uploaded.</div>
+    return <div className="mt-2">No image added.</div>
   }
 
   return render();
