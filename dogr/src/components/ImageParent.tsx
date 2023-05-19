@@ -1,21 +1,34 @@
 import React, { useState } from "react";
 import ImageUploader from "./ImageUploader";
-import ImageDisplay from "./ImageDisplay";
+import ImagePreview from "./ImagePreview";
 
 import config from "../config.json";
 
 const ImageParent = () => {
   const apiUrl = config.apiUrl;
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  const handleImageUpload = (url: string) => {
-    setPreviewUrl(url);
+  const handleFileChange = (imageUrl: string) => {
+    setImageUrl(imageUrl);
   }
 
+  const handleUploadSuccess = (imageUrl: string) => {
+    // TODO: do something
+  };
+
+  const handleUploadError = (error: string) => {
+    // TODO: do something better than logging in the future
+    console.log(error);
+  };
+
+  const handleImageUpload = (url: string) => {
+
+  };
+
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <ImageDisplay previewUrl={null} />
-      <ImageUploader apiUrl={apiUrl} onImageUpload={handleImageUpload}/>
+    <div className="flex flex-col items-center">
+      <ImageUploader onFileChange={handleFileChange} onUploadSuccess={handleUploadSuccess} onUploadError={handleUploadError} />
+      <ImagePreview imageUrl={imageUrl} />
     </div>
   );
 };
